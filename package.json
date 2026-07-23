@@ -1,0 +1,9 @@
+{
+  "name": "kompas-personal-ai",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Kompas — asisten pribadi Alder, terhubung ke ringkasan proyek yang sedang berjalan.",
+  "engines": {
+    "node": ">=18"
+  }
+}

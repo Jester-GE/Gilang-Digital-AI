@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kompas — Asisten Pribadi</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #14161c;
+    --panel: #1b1e26;
+    --panel-2: #21242e;
+    --line: #2c303c;
+    --gold: #d4a857;
+    --teal: #4a8f86;
+    --text: #ece9e2;
+    --text-dim: #9a9dab;
+    --danger: #c15b4a;
+  }
+  *{box-sizing:border-box;}
+  html,body{height:100%;}
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--text);
+    font-family:'Inter',sans-serif;
+    display:flex;
+    overflow:hidden;
+  }
+
+  /* ---------- Sidebar ---------- */
+  #sidebar{
+    width:280px;
+    min-width:280px;
+    background:var(--panel);
+    border-right:1px solid var(--line);
+    display:flex;
+    flex-direction:column;
+    padding:28px 22px;
+    overflow-y:auto;
+  }
+  .brand{
+    font-family:'Fraunces',serif;
+    font-size:26px;
+    font-weight:600;
+    letter-spacing:0.3px;
+    color:var(--text);
+    margin:0 0 2px 0;
+  }
+  .brand-sub{
+    font-size:12px;
+    color:var(--text-dim);
+    margin:0 0 28px 0;
+    font-family:'JetBrains Mono',monospace;
+    letter-spacing:0.5px;
+  }
+  .section-label{
+    font-size:11px;
+    text-transform:uppercase;
+    letter-spacing:1.2px;
+    color:var(--text-dim);
+    margin:18px 0 10px 0;
+    font-family:'JetBrains Mono',monospace;
+  }
+  .project-card{
+    background:var(--panel-2);
+    border:1px solid var(--line);
+    border-radius:8px;
+    padding:10px 12px;
+    margin-bottom:8px;
+    cursor:default;
+    transition:border-color .15s ease;
+  }
+  .project-card:hover{ border-color:var(--gold); }
+  .project-name{
+    font-size:13px;
+    font-weight:600;
+    color:var(--text);
+    margin-bottom:3px;
+  }
+  .project-desc{
+    font-size:11.5px;
+    color:var(--text-dim);
+    line-height:1.4;
+  }
+  #sidebar-footer{
+    margin-top:auto;
+    padding-top:16px;
+    font-size:11px;
+    color:var(--text-dim);
+    border-top:1px solid var(--line);
+    line-height:1.5;
+  }
+
+  /* ---------- Main chat ---------- */
+  #main{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    min-width:0;
+  }
+  #chat-header{
+    padding:20px 32px;
+    border-bottom:1px solid var(--line);
+    display:flex;
+    align-items:baseline;
+    gap:10px;
+  }
+  #chat-header h1{
+    font-family:'Fraunces',serif;
+    font-size:18px;
+    font-weight:600;
+    margin:0;
+  }
+  #chat-header span{
+    font-size:12px;
+    color:var(--text-dim);
+    font-family:'JetBrains Mono',monospace;
+  }
+  #messages{
+    flex:1;
+    overflow-y:auto;
+    padding:28px 32px;
+    display:flex;
+    flex-direction:column;
+    gap:18px;
+  }
+  .msg{
+    max-width:70%;
+    padding:12px 16px;
+    border-radius:12px;
+    font-size:14.5px;
+    line-height:1.55;
+    white-space:pre-wrap;
+  }
+  .msg.user{
+    align-self:flex-end;
+    background:var(--gold);
+    color:#1b1a15;
+    border-bottom-right-radius:3px;
+  }
+  .msg.assistant{
+    align-self:flex-start;
+    background:var(--panel-2);
+    border:1px solid var(--line);
+    border-bottom-left-radius:3px;
+  }
+  .msg.error{
+    align-self:flex-start;
+    background:rgba(193,91,74,0.12);
+    border:1px solid var(--danger);
+    color:#e8b4a8;
+  }
+  .msg.thinking{
+    align-self:flex-start;
+    color:var(--text-dim);
+    font-style:italic;
+    font-size:13px;
+  }
+  #empty-state{
+    margin:auto;
+    text-align:center;
+    color:var(--text-dim);
+    max-width:420px;
+  }
+  #empty-state .glyph{
+    font-family:'Fraunces',serif;
+    font-size:40px;
+    color:var(--gold);
+    margin-bottom:12px;
+  }
+  #empty-state p{ font-size:13.5px; line-height:1.6; }
+
+  #input-row{
+    border-top:1px solid var(--line);
+    padding:18px 32px 24px 32px;
+    display:flex;
+    gap:10px;
+  }
+  #input-row textarea{
+    flex:1;
+    resize:none;
+    background:var(--panel-2);
+    border:1px solid var(--line);
+    border-radius:10px;
+    color:var(--text);
+    font-family:'Inter',sans-serif;
+    font-size:14px;
+    padding:12px 14px;
+    line-height:1.4;
+    max-height:140px;
+  }
+  #input-row textarea:focus{ outline:none; border-color:var(--gold); }
+  #send-btn{
+    background:var(--gold);
+    color:#1b1a15;
+    border:none;
+    border-radius:10px;
+    padding:0 20px;
+    font-family:'Inter',sans-serif;
+    font-weight:600;
+    font-size:13.5px;
+    cursor:pointer;
+    transition:opacity .15s ease;
+  }
+  #send-btn:disabled{ opacity:0.5; cursor:not-allowed; }
+  #send-btn:hover:not(:disabled){ opacity:0.88; }
+
+  ::-webkit-scrollbar{ width:8px; }
+  ::-webkit-scrollbar-thumb{ background:var(--line); border-radius:4px; }
+</style>
+</head>
+<body>
+
+<div id="sidebar">
+  <p class="brand">Kompas</p>
+  <p class="brand-sub">v1 · prototype</p>
+
+  <div class="section-label">Terhubung dengan</div>
+  <div id="project-list"></div>
+
+  <div id="sidebar-footer">
+    Kompas menjawab berdasarkan ringkasan proyek di samping ini. Perbarui ringkasan langsung di kode sumber saat proyek berkembang.
+  </div>
+</div>
+
+<div id="main">
+  <div id="chat-header">
+    <h1>Tanya Kompas</h1>
+    <span id="status-dot">siap</span>
+  </div>
+
+  <div id="messages">
+    <div id="empty-state">
+      <div class="glyph">✦</div>
+      <p>Kompas tahu tentang semua proyek yang sedang kamu jalankan. Tanya soal status, langkah berikutnya, atau minta bantuan menghubungkan satu proyek ke proyek lain.</p>
+    </div>
+  </div>
+
+  <div id="input-row">
+    <textarea id="input" rows="1" placeholder="Tanya sesuatu tentang proyek kamu..."></textarea>
+    <button id="send-btn">Kirim</button>
+  </div>
+</div>
+
+<script>
+// ---------------------------------------------------------------
+// KNOWLEDGE BASE — ringkasan tiap proyek yang sedang berjalan.
+// Ini "otak" Kompas: edit bagian ini setiap kali status proyek berubah.
+// ---------------------------------------------------------------
+const PROJECTS = [
+  {
+    name: "Portfolio",
+    desc: "Portofolio lamaran kerja, mulai dari proyek creator-index.",
+    context: "Alder (Gilang Erhanda Putra, TAP Business Development Leader) sedang membangun portofolio untuk melamar kerja di luar Luxfeline. Rencana pertama: memasukkan creator-index (tool tracking affiliate/creator TikTok) sebagai repo GitHub. Sudah pernah eksplorasi portofolio no-code (Framer, Webflow) dan GitHub Pages; sudah ada portofolio Framer di gilangeporto.framer.website."
+  },
+  {
+    name: "Dashboard Analytics Creator",
+    desc: "Dashboard analytics creator TikTok, PWA single-file.",
+    context: "Dashboard analytics creator TikTok dibangun sebagai PWA (satu file index.html, deploy ke GitHub Pages). Pakai visualisasi Chart.js dan format Rupiah. Mendukung upload CSV/Excel. Backend sync lintas perangkat pakai Google Sheets via Apps Script."
+  },
+  {
+    name: "Dashboard Transit Jakarta",
+    desc: "Unifikasi info transportasi umum Jakarta jadi satu situs.",
+    context: "Website untuk menyatukan info transportasi umum Jakarta (Transjakarta, KRL, MRT, LRT, JakLingko). Riset menunjukkan tidak ada API real-time publik untuk KRL/MRT/LRT/JakLingko; hanya Transjakarta yang punya live tracking, itu pun cuma bisa diakses lewat Google Maps langsung (bukan data embeddable). Diputuskan versi 1 fokus ke Transjakarta saja: daftar koridor dari data GTFS statis, dengan tombol deep-link ke Google Maps untuk lihat posisi bus live. Bentuknya web statis sederhana (HTML/JS), sama seperti dashboard analytics."
+  },
+  {
+    name: "Dokumentasi Kreator Luxfeline",
+    desc: "Ekosistem dokumentasi program creator/affiliate Luxfeline.",
+    context: "Membangun ekosistem dokumentasi creator/affiliate Luxfeline: panduan pemula, dokumen program afiliasi, materi positioning kompetitif. Semua dokumen bertema red velvet dan putih. Proses generate PDF pakai Python/reportlab, menggabungkan dokumen sumber, memakai data komisi nyata dari pasar TikTok Shop Indonesia. Ada struktur tier afiliasi/LIVE (Starter sampai Luxfeline Icon). Dokumen margin internal dipisah dari materi publik. Value proposition creator menekankan data GMV berbasis bukti dan benefit non-cash."
+  },
+  {
+    name: "Analisis Kompetitif MCN",
+    desc: "Positioning Luxfeline vs agensi MCN Indonesia lain.",
+    context: "Analisis kompetitif terhadap agensi MCN lain: Micha Indonesia, Tiger Wong MCN, CC Partner, HDA. Hasilnya masuk ke materi positioning kompetitif dalam ekosistem dokumentasi creator."
+  },
+  {
+    name: "TIA Jewelry",
+    desc: "Program founding partner/KOL brand perhiasan TIA.",
+    context: "Program KOL/KOC founding partner untuk brand perhiasan TIA, dijalankan lewat Luxfeline, pakai sistem TAP untuk outreach. Target 10 KOL, tanpa batasan tier. KOL dapat 50% CPS, bisa bangun tim sendiri, tanpa biaya di muka (skema partnership). Benefit tambahan: akses Yacht Club, World Tour ke kantor pusat TIA di Jepang, Elite Networking, program CEO Business Class. KOL diposisikan sebagai 'Co-Founder/Super Node' dengan kompensasi dua tingkat (50% referral langsung + 50% referral tim/downline). Ada proposal undangan event offline KOL/KOC, benefit transport lokal (300rb-500rb atau GrabCar Premium/Silver Bird), Welcome Box VIP berisi aksesori TIA, surat sambutan dari tim eksekutif Luxfeline, dan katalog premium 'TIA Fashion BluePrint'. Sudah menghubungi satu KOL dan sedang atur pertemuan negosiasi online."
+  },
+  {
+    name: "Buku Cerita Folklore",
+    desc: "Buku cerita anak ilustrasi berbasis folklore Indonesia.",
+    context: "Mengembangkan buku cerita anak berilustrasi berbasis folklore Indonesia sebagai produk digital untuk audiens global. Dua cerita pertama: Timun Mas dan Malin Kundang. Alur kerja hybrid: alat AI dipakai sebagai referensi, tapi ilustrasi dibuat asli secara personal (bukan AI-generated). Ada strategi konten TikTok pelengkap seputar BookTok dan storytelling budaya."
+  }
+];
+
+const SYSTEM_PROMPT = `Kamu adalah Kompas, asisten pribadi untuk Alder (Gilang Erhanda Putra), operator Luxfeline Global — sebuah Multi-Channel Network (MCN) yang fokus di TikTok Shop pasar Indonesia.
+
+Kamu punya pengetahuan tentang proyek-proyek yang sedang berjalan berikut ini:
+
+${PROJECTS.map(p => `### ${p.name}\n${p.context}`).join("\n\n")}
+
+Jawab pertanyaan Alder dengan merujuk ke proyek-proyek di atas kalau relevan. Kalau pertanyaannya di luar konteks proyek-proyek ini, jawab saja secara normal dan jangan memaksakan koneksi. Jawab dalam Bahasa Indonesia kecuali diminta lain. Jangan gunakan tanda pisah panjang (em dash) dalam jawabanmu. Jawab ringkas dan langsung ke inti, seperti asisten operasional yang efisien, bukan seperti chatbot generik.`;
+
+// ---------------------------------------------------------------
+// UI wiring
+// ---------------------------------------------------------------
+const messagesEl = document.getElementById('messages');
+const inputEl = document.getElementById('input');
+const sendBtn = document.getElementById('send-btn');
+const statusDot = document.getElementById('status-dot');
+const projectListEl = document.getElementById('project-list');
+
+PROJECTS.forEach(p => {
+  const card = document.createElement('div');
+  card.className = 'project-card';
+  card.innerHTML = `<div class="project-name">${p.name}</div><div class="project-desc">${p.desc}</div>`;
+  projectListEl.appendChild(card);
+});
+
+let history = [];
+let emptyStateEl = document.getElementById('empty-state');
+
+function scrollToBottom(){
+  messagesEl.scrollTop = messagesEl.scrollHeight;
+}
+
+function addMessage(role, text){
+  if(emptyStateEl){ emptyStateEl.remove(); emptyStateEl = null; }
+  const div = document.createElement('div');
+  div.className = 'msg ' + role;
+  div.textContent = text;
+  messagesEl.appendChild(div);
+  scrollToBottom();
+  return div;
+}
+
+async function sendMessage(){
+  const text = inputEl.value.trim();
+  if(!text) return;
+
+  addMessage('user', text);
+  history.push({ role: 'user', content: text });
+  inputEl.value = '';
+  inputEl.style.height = 'auto';
+  sendBtn.disabled = true;
+  statusDot.textContent = 'berpikir...';
+
+  const thinkingEl = addMessage('thinking', 'Kompas sedang menyusun jawaban...');
+
+  try{
+    const response = await fetch("/api/chat", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        system: SYSTEM_PROMPT,
+        messages: history
+      })
+    });
+
+    const data = await response.json();
+    thinkingEl.remove();
+
+    if(!response.ok){
+      addMessage('error', 'Terjadi kesalahan: ' + (data?.error?.message || 'permintaan gagal.'));
+      statusDot.textContent = 'error';
+      return;
+    }
+
+    const textBlock = (data.content || []).find(b => b.type === 'text');
+    const replyText = textBlock ? textBlock.text : '(tidak ada balasan teks)';
+    addMessage('assistant', replyText);
+    history.push({ role: 'assistant', content: replyText });
+    statusDot.textContent = 'siap';
+  }catch(err){
+    thinkingEl.remove();
+    addMessage('error', 'Gagal terhubung: ' + err.message);
+    statusDot.textContent = 'error';
+  }finally{
+    sendBtn.disabled = false;
+    inputEl.focus();
+  }
+}
+
+sendBtn.addEventListener('click', sendMessage);
+inputEl.addEventListener('keydown', (e) => {
+  if(e.key === 'Enter' && !e.shiftKey){
+    e.preventDefault();
+    sendMessage();
+  }
+});
+inputEl.addEventListener('input', () => {
+  inputEl.style.height = 'auto';
+  inputEl.style.height = Math.min(inputEl.scrollHeight, 140) + 'px';
+});
+</script>
+</body>
+</html>
