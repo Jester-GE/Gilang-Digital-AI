@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>DiGi-Digital Gilang powered by Gemini</title>
+<title>Kompas — Asisten Pribadi (Gemini, gratis)</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/12.4.2/math.min.js"></script>
@@ -434,7 +434,7 @@ function tryCalculate(raw){
 // perintah kalkulator, pertanyaan dilempar ke Gemini API beserta
 // SYSTEM_PROMPT di atas sebagai konteks.
 // ---------------------------------------------------------------
-const GEMINI_MODEL = "gemini-2.5-flash"; // cek ai.google.dev/api kalau model ini sudah diganti Google
+const GEMINI_MODEL = "gemini-3.6-flash"; // cek ai.google.dev/gemini-api/docs/latest-model kalau ini sudah diganti Google lagi
 let geminiHistory = []; // format Gemini: {role: 'user'|'model', parts: [{text}]}
 
 async function askGemini(apiKey, message){
