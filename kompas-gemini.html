@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kompas — Asisten Pribadi (Gemini, gratis)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/12.4.2/math.min.js"></script>
+<style>
+  :root{
+    --bg: #14161c;
+    --panel: #1b1e26;
+    --panel-2: #21242e;
+    --line: #2c303c;
+    --gold: #d4a857;
+    --text: #ece9e2;
+    --text-dim: #9a9dab;
+  }
+  *{box-sizing:border-box;}
+  html,body{height:100%;}
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--text);
+    font-family:'Inter',sans-serif;
+    display:flex;
+    overflow:hidden;
+  }
+
+  #sidebar{
+    width:280px;
+    min-width:280px;
+    background:var(--panel);
+    border-right:1px solid var(--line);
+    display:flex;
+    flex-direction:column;
+    padding:28px 22px;
+    overflow-y:auto;
+  }
+  .brand{
+    font-family:'Fraunces',serif;
+    font-size:26px;
+    font-weight:600;
+    margin:0 0 2px 0;
+  }
+  .brand-sub{
+    font-size:12px;
+    color:var(--text-dim);
+    margin:0 0 28px 0;
+    font-family:'JetBrains Mono',monospace;
+  }
+  .section-label{
+    font-size:11px;
+    text-transform:uppercase;
+    letter-spacing:1.2px;
+    color:var(--text-dim);
+    margin:18px 0 10px 0;
+    font-family:'JetBrains Mono',monospace;
+  }
+  .project-card{
+    background:var(--panel-2);
+    border:1px solid var(--line);
+    border-radius:8px;
+    padding:10px 12px;
+    margin-bottom:8px;
+    cursor:pointer;
+    transition:border-color .15s ease;
+  }
+  .project-card:hover{ border-color:var(--gold); }
+  .project-name{ font-size:13px; font-weight:600; margin-bottom:3px; }
+  .project-desc{ font-size:11.5px; color:var(--text-dim); line-height:1.4; }
+  .project-keywords{
+    font-size:10px;
+    color:var(--gold);
+    font-family:'JetBrains Mono',monospace;
+    margin-top:6px;
+  }
+  .calc-card{
+    background:var(--panel-2);
+    border:1px solid var(--line);
+    border-radius:8px;
+    padding:10px 12px;
+    margin-bottom:8px;
+    cursor:pointer;
+    transition:border-color .15s ease;
+  }
+  .calc-card:hover{ border-color:#4a8f86; }
+  .calc-label{ font-size:11.5px; color:var(--text-dim); margin-bottom:3px; }
+  .calc-example{
+    font-size:11.5px;
+    font-family:'JetBrains Mono',monospace;
+    color:#7ec4bb;
+  }
+  #sidebar-footer{
+    margin-top:auto;
+    padding-top:16px;
+    font-size:11px;
+    color:var(--text-dim);
+    border-top:1px solid var(--line);
+    line-height:1.5;
+  }
+
+  #main{ flex:1; display:flex; flex-direction:column; min-width:0; }
+  #chat-header{
+    padding:20px 32px;
+    border-bottom:1px solid var(--line);
+    display:flex;
+    align-items:baseline;
+    gap:10px;
+  }
+  #chat-header h1{ font-family:'Fraunces',serif; font-size:18px; font-weight:600; margin:0; }
+  #chat-header span{ font-size:12px; color:var(--text-dim); font-family:'JetBrains Mono',monospace; }
+
+  #key-row{
+    padding:12px 32px;
+    border-bottom:1px solid var(--line);
+    display:flex;
+    align-items:center;
+    gap:14px;
+    background:var(--panel);
+  }
+  #api-key{
+    background:var(--panel-2);
+    border:1px solid var(--line);
+    border-radius:8px;
+    color:var(--text);
+    font-family:'JetBrains Mono',monospace;
+    font-size:12.5px;
+    padding:8px 10px;
+    width:300px;
+  }
+  #api-key:focus{ outline:none; border-color:var(--gold); }
+  #key-hint{ font-size:11px; color:var(--text-dim); line-height:1.4; }
+  #key-hint a{ color:var(--gold); }
+
+  #mode-banner{
+    padding:10px 32px;
+    background:rgba(212,168,87,0.08);
+    border-bottom:1px solid var(--line);
+    font-size:11.5px;
+    color:var(--text-dim);
+  }
+  #mode-banner b{ color:var(--gold); }
+
+  #messages{
+    flex:1;
+    overflow-y:auto;
+    padding:28px 32px;
+    display:flex;
+    flex-direction:column;
+    gap:18px;
+  }
+  .msg{
+    max-width:70%;
+    padding:12px 16px;
+    border-radius:12px;
+    font-size:14.5px;
+    line-height:1.55;
+    white-space:pre-wrap;
+  }
+  .msg.user{
+    align-self:flex-end;
+    background:var(--gold);
+    color:#1b1a15;
+    border-bottom-right-radius:3px;
+  }
+  .msg.assistant{
+    align-self:flex-start;
+    background:var(--panel-2);
+    border:1px solid var(--line);
+    border-bottom-left-radius:3px;
+  }
+  #empty-state{
+    margin:auto;
+    text-align:center;
+    color:var(--text-dim);
+    max-width:440px;
+  }
+  #empty-state .glyph{ font-family:'Fraunces',serif; font-size:40px; color:var(--gold); margin-bottom:12px; }
+  #empty-state p{ font-size:13.5px; line-height:1.6; }
+
+  #input-row{
+    border-top:1px solid var(--line);
+    padding:18px 32px 24px 32px;
+    display:flex;
+    gap:10px;
+  }
+  #input-row textarea{
+    flex:1;
+    resize:none;
+    background:var(--panel-2);
+    border:1px solid var(--line);
+    border-radius:10px;
+    color:var(--text);
+    font-family:'Inter',sans-serif;
+    font-size:14px;
+    padding:12px 14px;
+    line-height:1.4;
+    max-height:140px;
+  }
+  #input-row textarea:focus{ outline:none; border-color:var(--gold); }
+  #send-btn{
+    background:var(--gold);
+    color:#1b1a15;
+    border:none;
+    border-radius:10px;
+    padding:0 20px;
+    font-family:'Inter',sans-serif;
+    font-weight:600;
+    font-size:13.5px;
+    cursor:pointer;
+  }
+  #send-btn:hover{ opacity:0.88; }
+
+  ::-webkit-scrollbar{ width:8px; }
+  ::-webkit-scrollbar-thumb{ background:var(--line); border-radius:4px; }
+</style>
+</head>
+<body>
+
+<div id="sidebar">
+  <p class="brand">Kompas</p>
+  <p class="brand-sub">Gemini · gratis</p>
+
+  <div class="section-label">Proyek yang dikenal</div>
+  <div id="project-list"></div>
+
+  <div class="section-label">Kalkulator (Kalkulus 3)</div>
+  <div id="calc-list"></div>
+
+  <div id="sidebar-footer">
+    Jawaban proyek dan pertanyaan umum dijawab Gemini API (gratis). Kalkulator tetap murni math.js, instan tanpa AI. Klik kartu untuk contoh.
+  </div>
+</div>
+
+<div id="main">
+  <div id="chat-header">
+    <h1>Tanya Kompas</h1>
+    <span>Gemini</span>
+  </div>
+
+  <div id="mode-banner">
+    <b>Mode Gemini (gratis):</b> jawaban proyek sekarang dijawab AI beneran (Gemini Flash, gratis dari Google), bukan cocok kata kunci. Kalkulator tetap instan tanpa AI.
+  </div>
+
+  <div id="key-row">
+    <input id="api-key" type="password" placeholder="Tempel Gemini API key kamu di sini">
+    <span id="key-hint">Ambil gratis di <a href="https://aistudio.google.com/apikey" target="_blank">aistudio.google.com/apikey</a>. Key cuma disimpan di browser ini, tidak dikirim ke mana pun selain Google.</span>
+  </div>
+
+  <div id="messages">
+    <div id="empty-state">
+      <div class="glyph">✦</div>
+      <p>Tanya pakai nama proyek (misalnya "status TIA"), atau ketik perintah hitung seperti "turunan x^2 dx" — lihat contoh di sidebar.</p>
+    </div>
+  </div>
+
+  <div id="input-row">
+    <textarea id="input" rows="1" placeholder="Tanya sesuatu, sebut nama proyeknya..."></textarea>
+    <button id="send-btn">Kirim</button>
+  </div>
+</div>
+
+<script>
+// ---------------------------------------------------------------
+// BASIS PENGETAHUAN — konteks proyek yang dikirim ke Gemini sebagai
+// system instruction. Edit "context" kapan pun status proyek berubah.
+// ---------------------------------------------------------------
+const PROJECTS = [
+  {
+    name: "Portfolio",
+    desc: "Portofolio lamaran kerja, mulai dari creator-index.",
+    context: "Portfolio: sedang dibangun untuk melamar kerja di luar Luxfeline. Proyek pertama yang masuk: creator-index (tool tracking affiliate/creator TikTok) sebagai repo GitHub. Sudah ada versi Framer di gilangeporto.framer.website."
+  },
+  {
+    name: "Dashboard Analytics Creator",
+    desc: "Dashboard analytics creator TikTok, PWA.",
+    context: "Dashboard Analytics Creator: PWA single-file (index.html), pakai Chart.js, format Rupiah, dukung upload CSV/Excel, sync lintas perangkat lewat Google Sheets + Apps Script."
+  },
+  {
+    name: "Dashboard Transit Jakarta",
+    desc: "Unifikasi info transportasi umum Jakarta.",
+    context: "Dashboard Transit Jakarta: v1 fokus ke Transjakarta saja. Alasannya, KRL/MRT/LRT/JakLingko tidak punya API real-time publik, dan posisi bus live Transjakarta cuma bisa dilihat langsung di Google Maps (bukan data yang bisa di-embed). Jadi rencana v1: daftar koridor dari data GTFS statis + tombol deep-link ke Google Maps untuk live tracking."
+  },
+  {
+    name: "Dokumentasi Kreator Luxfeline",
+    desc: "Ekosistem dokumentasi program creator/affiliate.",
+    context: "Dokumentasi Kreator Luxfeline: panduan pemula, dokumen program afiliasi, materi positioning kompetitif, tema red velvet dan putih. PDF di-generate pakai Python/reportlab. Ada struktur tier Starter sampai Luxfeline Icon. Dokumen margin internal dipisah dari materi publik."
+  },
+  {
+    name: "Analisis Kompetitif MCN",
+    desc: "Positioning Luxfeline vs agensi MCN lain.",
+    context: "Analisis Kompetitif: membandingkan Luxfeline dengan Micha Indonesia, Tiger Wong MCN, CC Partner, dan HDA. Hasilnya masuk ke materi positioning dalam ekosistem dokumentasi creator."
+  },
+  {
+    name: "TIA Jewelry",
+    desc: "Program founding partner/KOL brand perhiasan TIA.",
+    context: "TIA Jewelry: program founding partner/KOL, dijalankan lewat Luxfeline pakai sistem TAP. Target 10 KOL, dapat 50% CPS, tanpa biaya di muka, bisa bangun tim sendiri. Benefit tambahan: Yacht Club, World Tour ke Jepang, Elite Networking, CEO Business Class. Status terakhir: sudah menghubungi satu KOL, sedang atur negosiasi online."
+  },
+  {
+    name: "Buku Cerita Folklore",
+    desc: "Buku cerita anak berilustrasi folklore Indonesia.",
+    context: "Buku Cerita Folklore: buku anak berilustrasi berbasis folklore Indonesia untuk audiens global. Dua cerita pertama: Timun Mas dan Malin Kundang. Ilustrasi dibuat asli secara personal (AI cuma dipakai sebagai referensi). Ada strategi konten TikTok seputar BookTok."
+  },
+  {
+    name: "Asisten Pribadi (Kompas)",
+    desc: "Proyek asisten pribadi ini sendiri.",
+    context: "Kompas: asisten pribadi yang terhubung ke ringkasan semua proyek yang sedang berjalan. Versi ini pakai Gemini API (gratis) sebagai otaknya, plus kalkulator matematika lokal (math.js, tanpa AI) untuk hitung-hitungan."
+  }
+];
+
+const SYSTEM_PROMPT = `Kamu adalah Kompas, asisten pribadi untuk Alder (Gilang Erhanda Putra), operator Luxfeline Global, sebuah Multi-Channel Network (MCN) yang fokus di TikTok Shop pasar Indonesia.
+
+Kamu punya pengetahuan tentang proyek-proyek yang sedang berjalan berikut ini:
+
+${PROJECTS.map(p => `### ${p.name}\n${p.context}`).join("\n\n")}
+
+Jawab pertanyaan dengan merujuk ke proyek-proyek di atas kalau relevan. Kalau pertanyaannya di luar konteks itu, jawab saja secara normal. Jawab dalam Bahasa Indonesia kecuali diminta lain. Jangan gunakan tanda pisah panjang (em dash). Jawab ringkas, seperti asisten operasional yang efisien.`;
+
+// ---------------------------------------------------------------
+// KALKULATOR — dieksekusi langsung dari kotak chat yang sama.
+// Ini bukan AI: math.js cuma mem-parsing dan menghitung ekspresi
+// matematika secara deterministik, jadi tidak perlu API key dan
+// selalu jalan duluan sebelum pesan dilempar ke Gemini.
+// ---------------------------------------------------------------
+const CALC_EXAMPLES = [
+  { label: "Aritmatika", example: "hitung 3^2 + sqrt(16)" },
+  { label: "Turunan", example: "turunan x^3 + 2*x dx" },
+  { label: "Turunan parsial", example: "turunan x^2*y + y^3 dy" },
+  { label: "Gradien (multivariabel)", example: "gradien x^2*y + sin(y)*z" },
+  { label: "Integral tunggal", example: "integral x^2 dx dari 0 sampai 2" },
+  { label: "Integral lipat dua", example: "integral ganda x*y dx dari 0 sampai 1 dy dari 0 sampai 2" }
+];
+
+function detectVariables(expr){
+  const candidates = ['x', 'y', 'z', 't'];
+  return candidates.filter(v => new RegExp('\\b' + v + '\\b').test(expr));
+}
+
+function simpson(f, a, b, n){
+  if(n % 2 !== 0) n += 1;
+  const h = (b - a) / n;
+  let sum = f(a) + f(b);
+  for(let i = 1; i < n; i++){
+    const x = a + i * h;
+    sum += (i % 2 === 0 ? 2 : 4) * f(x);
+  }
+  return (h / 3) * sum;
+}
+
+function tryCalculate(raw){
+  const msg = raw.trim();
+  const lower = msg.toLowerCase();
+
+  // Integral ganda: cek ini duluan sebelum integral tunggal
+  let m = lower.match(/^integral\s+ganda\s+(.+?)\s+d([a-z])\s+dari\s+(-?[\d.]+)\s+sampai\s+(-?[\d.]+)\s+d([a-z])\s+dari\s+(-?[\d.]+)\s+sampai\s+(-?[\d.]+)$/);
+  if(m){
+    const [, expr, v1, a1, b1, v2, a2, b2] = m;
+    try{
+      const inner = (val1, val2) => {
+        const scope = {};
+        scope[v1] = val1;
+        scope[v2] = val2;
+        return math.evaluate(expr, scope);
+      };
+      const outer = (val1) => simpson((val2) => inner(val1, val2), parseFloat(a2), parseFloat(b2), 100);
+      const result = simpson(outer, parseFloat(a1), parseFloat(b1), 100);
+      return `∫∫ ${expr} d${v1} d${v2}, ${v1} dari ${a1} sampai ${b1}, ${v2} dari ${a2} sampai ${b2}\n≈ ${result.toFixed(6)} (numerik, aturan Simpson)`;
+    }catch(err){
+      return `Gagal menghitung integral ganda: ${err.message}`;
+    }
+  }
+
+  // Integral tunggal
+  m = lower.match(/^integral\s+(.+?)\s+d([a-z])\s+dari\s+(-?[\d.]+)\s+sampai\s+(-?[\d.]+)$/);
+  if(m){
+    const [, expr, v, a, b] = m;
+    try{
+      const f = (val) => {
+        const scope = {};
+        scope[v] = val;
+        return math.evaluate(expr, scope);
+      };
+      const result = simpson(f, parseFloat(a), parseFloat(b), 1000);
+      return `∫ ${expr} d${v}, dari ${a} sampai ${b}\n≈ ${result.toFixed(6)} (numerik, aturan Simpson)`;
+    }catch(err){
+      return `Gagal menghitung integral: ${err.message}`;
+    }
+  }
+
+  // Gradien (turunan parsial ke semua variabel yang terdeteksi)
+  m = lower.match(/^gradien\s+(.+)$/);
+  if(m){
+    const expr = m[1];
+    try{
+      const vars = detectVariables(expr);
+      if(vars.length === 0) return `Tidak ada variabel (x, y, z, t) yang terdeteksi di "${expr}".`;
+      const parts = vars.map(v => `∂/∂${v} = ${math.derivative(expr, v).toString()}`);
+      return `Gradien dari ${expr}:\n${parts.join('\n')}`;
+    }catch(err){
+      return `Gagal menghitung gradien: ${err.message}`;
+    }
+  }
+
+  // Turunan (biasa atau parsial, satu variabel per perintah)
+  m = lower.match(/^turunan\s+(.+?)\s+d([a-z])$/);
+  if(m){
+    const [, expr, v] = m;
+    try{
+      const result = math.derivative(expr, v).toString();
+      return `d/d${v} (${expr}) = ${result}`;
+    }catch(err){
+      return `Gagal menghitung turunan: ${err.message}`;
+    }
+  }
+
+  // Aritmatika biasa
+  m = lower.match(/^hitung\s+(.+)$/);
+  if(m){
+    try{
+      const result = math.evaluate(m[1]);
+      return `${m[1]} = ${result}`;
+    }catch(err){
+      return `Gagal menghitung: ${err.message}`;
+    }
+  }
+
+  return null; // bukan perintah kalkulator, lanjut ke pencocokan kata kunci proyek
+}
+
+// ---------------------------------------------------------------
+// "Otak": kalkulator dicek duluan (instan, lokal). Kalau bukan
+// perintah kalkulator, pertanyaan dilempar ke Gemini API beserta
+// SYSTEM_PROMPT di atas sebagai konteks.
+// ---------------------------------------------------------------
+const GEMINI_MODEL = "gemini-2.5-flash"; // cek ai.google.dev/api kalau model ini sudah diganti Google
+let geminiHistory = []; // format Gemini: {role: 'user'|'model', parts: [{text}]}
+
+async function askGemini(apiKey, message){
+  geminiHistory.push({ role: "user", parts: [{ text: message }] });
+
+  const response = await fetch(
+    `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-goog-api-key": apiKey
+      },
+      body: JSON.stringify({
+        system_instruction: { parts: [{ text: SYSTEM_PROMPT }] },
+        contents: geminiHistory
+      })
+    }
+  );
+
+  const data = await response.json();
+
+  if(!response.ok){
+    throw new Error(data?.error?.message || `Permintaan gagal (status ${response.status})`);
+  }
+
+  const replyText = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+  if(!replyText){
+    throw new Error("Gemini tidak mengembalikan teks jawaban.");
+  }
+
+  geminiHistory.push({ role: "model", parts: [{ text: replyText }] });
+  return replyText;
+}
+
+// ---------------------------------------------------------------
+// UI wiring
+// ---------------------------------------------------------------
+const messagesEl = document.getElementById('messages');
+const inputEl = document.getElementById('input');
+const sendBtn = document.getElementById('send-btn');
+const apiKeyEl = document.getElementById('api-key');
+const projectListEl = document.getElementById('project-list');
+let emptyStateEl = document.getElementById('empty-state');
+
+PROJECTS.forEach(p => {
+  const card = document.createElement('div');
+  card.className = 'project-card';
+  card.innerHTML = `<div class="project-name">${p.name}</div><div class="project-desc">${p.desc}</div>`;
+  card.addEventListener('click', () => {
+    inputEl.value = `Apa status ${p.name}?`;
+    inputEl.focus();
+  });
+  projectListEl.appendChild(card);
+});
+
+const calcListEl = document.getElementById('calc-list');
+CALC_EXAMPLES.forEach(c => {
+  const card = document.createElement('div');
+  card.className = 'calc-card';
+  card.innerHTML = `<div class="calc-label">${c.label}</div><div class="calc-example">${c.example}</div>`;
+  card.addEventListener('click', () => {
+    inputEl.value = c.example;
+    inputEl.focus();
+  });
+  calcListEl.appendChild(card);
+});
+
+function scrollToBottom(){ messagesEl.scrollTop = messagesEl.scrollHeight; }
+
+function addMessage(role, text){
+  if(emptyStateEl){ emptyStateEl.remove(); emptyStateEl = null; }
+  const div = document.createElement('div');
+  div.className = 'msg ' + role;
+  div.textContent = text;
+  messagesEl.appendChild(div);
+  scrollToBottom();
+  return div;
+}
+
+async function sendMessage(){
+  const text = inputEl.value.trim();
+  if(!text) return;
+
+  addMessage('user', text);
+  inputEl.value = '';
+  inputEl.style.height = 'auto';
+
+  // Kalkulator: instan, lokal, tidak butuh API key sama sekali.
+  const calcResult = tryCalculate(text);
+  if(calcResult !== null){
+    setTimeout(() => addMessage('assistant', calcResult), 150);
+    return;
+  }
+
+  // Bukan perintah kalkulator, lempar ke Gemini.
+  const apiKey = apiKeyEl.value.trim();
+  if(!apiKey){
+    addMessage('assistant', 'Masukkan dulu Gemini API key kamu di kotak atas (gratis di aistudio.google.com/apikey) supaya aku bisa jawab pertanyaan di luar kalkulator.');
+    return;
+  }
+
+  sendBtn.disabled = true;
+  const thinkingEl = addMessage('assistant', 'Kompas sedang berpikir...');
+
+  try{
+    const reply = await askGemini(apiKey, text);
+    thinkingEl.remove();
+    addMessage('assistant', reply);
+  }catch(err){
+    thinkingEl.remove();
+    addMessage('assistant', 'Gagal menghubungi Gemini: ' + err.message);
+  }finally{
+    sendBtn.disabled = false;
+    inputEl.focus();
+  }
+}
+
+sendBtn.addEventListener('click', sendMessage);
+inputEl.addEventListener('keydown', (e) => {
+  if(e.key === 'Enter' && !e.shiftKey){
+    e.preventDefault();
+    sendMessage();
+  }
+});
+inputEl.addEventListener('input', () => {
+  inputEl.style.height = 'auto';
+  inputEl.style.height = Math.min(inputEl.scrollHeight, 140) + 'px';
+});
+</script>
+</body>
+</html>
