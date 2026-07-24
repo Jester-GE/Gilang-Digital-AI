@@ -225,7 +225,7 @@
   <div id="messages">
     <div id="empty-state">
       <div class="glyph">✦</div>
-      <p>Tanya pakai nama proyek (misalnya "status TIA"), atau ketik perintah hitung seperti "turunan x^2 dx" — lihat contoh di sidebar.</p>
+      <p>Tanya pakai nama proyek, atau ketik perintah hitung seperti "turunan x^2 dx" (lihat contoh di sidebar)</p>
     </div>
   </div>
 
@@ -511,7 +511,7 @@ async function sendMessage(){
   }
 
   // Bukan perintah kalkulator, lempar ke Gemini pakai key yang sudah ditulis di kode.
-  if(!GEMINI_API_KEY || GEMINI_API_KEY === "TARUH_API_KEY_GEMINI_KAMU_DI_SINI"){
+  if(!GEMINI_API_KEY || GEMINI_API_KEY === AQ.Ab8RN6K25Wt3TTOz9Cu59IYnTcib6iKU7N8x-vPEsGFfDNnUpw){
     addMessage('assistant', 'Belum ada Gemini API key di kode (ganti GEMINI_API_KEY di bagian atas script).');
     return;
   }
