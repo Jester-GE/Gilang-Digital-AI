@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>DiGi- Digital Gilang</title>
+<title>DiGi — Digital Version of Gilang (Groq, gratis)</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/12.4.2/math.min.js"></script>
@@ -199,7 +199,7 @@
 
 <div id="sidebar">
   <p class="brand">DiGi</p>
-  <p class="brand-sub">Gemini · gratis</p>
+  <p class="brand-sub">Groq · gratis</p>
 
   <div class="section-label">Proyek yang dikenal</div>
   <div id="project-list"></div>
@@ -208,24 +208,24 @@
   <div id="calc-list"></div>
 
   <div id="sidebar-footer">
-    Jawaban proyek dan pertanyaan umum dijawab Gemini API (gratis).
+    Jawaban proyek dan pertanyaan umum dijawab Groq API (gratis, model Llama/GPT-OSS open-source). Kalkulator tetap murni math.js, instan tanpa AI. Klik kartu untuk contoh.
   </div>
 </div>
 
 <div id="main">
   <div id="chat-header">
     <h1>Tanya DiGi</h1>
-    <span>Gemini</span>
+    <span>Groq</span>
   </div>
 
   <div id="mode-banner">
-    <b>Mode Gemini (gratis):</b> jawaban proyek dijawab AI beneran (Gemini Flash, gratis dari Google).
+    <b>Mode Groq (gratis):</b> jawaban proyek dijawab AI beneran (model open-source lewat Groq, gratis), bukan cocok kata kunci. Kalkulator tetap instan tanpa AI.
   </div>
 
   <div id="messages">
     <div id="empty-state">
       <div class="glyph">✦</div>
-      <p>Tanya pakai nama proyek, atau ketik perintah lainnya(lihat contoh di sidebar)</p>
+      <p>Tanya pakai nama proyek (misalnya "status TIA"), atau ketik perintah hitung seperti "turunan x^2 dx" — lihat contoh di sidebar.</p>
     </div>
   </div>
 
@@ -237,7 +237,7 @@
 
 <script>
 // ---------------------------------------------------------------
-// BASIS PENGETAHUAN — konteks proyek yang dikirim ke Gemini sebagai
+// BASIS PENGETAHUAN — konteks proyek yang dikirim ke Groq sebagai
 // system instruction. Edit "context" kapan pun status proyek berubah.
 // ---------------------------------------------------------------
 const PROJECTS = [
@@ -277,13 +277,13 @@ const PROJECTS = [
     context: "Buku Cerita Folklore: buku anak berilustrasi berbasis folklore Indonesia untuk audiens global. Dua cerita pertama: Timun Mas dan Malin Kundang. Ilustrasi dibuat asli secara personal (AI cuma dipakai sebagai referensi). Ada strategi konten TikTok seputar BookTok."
   },
   {
-    name: "Asisten Pribadi (Kompas)",
+    name: "Asisten Pribadi (DiGi)",
     desc: "Proyek asisten pribadi ini sendiri.",
-    context: "Kompas: asisten pribadi yang terhubung ke ringkasan semua proyek yang sedang berjalan. Versi ini pakai Gemini API (gratis) sebagai otaknya, plus kalkulator matematika lokal (math.js, tanpa AI) untuk hitung-hitungan."
+    context: "DiGi: asisten pribadi yang terhubung ke ringkasan semua proyek yang sedang berjalan. Versi ini pakai Groq API (gratis, model open-source seperti Llama/GPT-OSS) sebagai otaknya, plus kalkulator matematika lokal (math.js, tanpa AI) untuk hitung-hitungan."
   }
 ];
 
-const SYSTEM_PROMPT = `Kamu adalah Kompas, asisten pribadi untuk Alder (Gilang Erhanda Putra), operator Luxfeline Global, sebuah Multi-Channel Network (MCN) yang fokus di TikTok Shop pasar Indonesia.
+const SYSTEM_PROMPT = `Kamu adalah DiGi (Digital Version of Gilang), asisten pribadi untuk Alder (Gilang Erhanda Putra), operator Luxfeline Global, sebuah Multi-Channel Network (MCN) yang fokus di TikTok Shop pasar Indonesia.
 
 Kamu punya pengetahuan tentang proyek-proyek yang sedang berjalan berikut ini:
 
@@ -295,7 +295,7 @@ Jawab pertanyaan dengan merujuk ke proyek-proyek di atas kalau relevan. Kalau pe
 // KALKULATOR — dieksekusi langsung dari kotak chat yang sama.
 // Ini bukan AI: math.js cuma mem-parsing dan menghitung ekspresi
 // matematika secara deterministik, jadi tidak perlu API key dan
-// selalu jalan duluan sebelum pesan dilempar ke Gemini.
+// selalu jalan duluan sebelum pesan dilempar ke Groq.
 // ---------------------------------------------------------------
 const CALC_EXAMPLES = [
   { label: "Aritmatika", example: "hitung 3^2 + sqrt(16)" },
@@ -404,34 +404,34 @@ function tryCalculate(raw){
 
 // ---------------------------------------------------------------
 // "Otak": kalkulator dicek duluan (instan, lokal). Kalau bukan
-// perintah kalkulator, pertanyaan dilempar ke Gemini API beserta
+// perintah kalkulator, pertanyaan dilempar ke Groq API beserta
 // SYSTEM_PROMPT di atas sebagai konteks.
 // ---------------------------------------------------------------
-const GEMINI_MODEL = "gemini-3.6-flash"; // cek ai.google.dev/gemini-api/docs/latest-model kalau ini sudah diganti Google lagi
+const GROQ_MODEL = "openai/gpt-oss-20b"; // cek console.groq.com/docs/models kalau ini sudah di-deprecate Groq
 
 // !! PERINGATAN !!
 // Key di bawah ini akan terlihat oleh SIAPA PUN yang buka "View Page Source"
 // di situs ini, karena ini kode client-side, bukan disembunyikan di server.
-// Ini keputusan sadar: dipilih karena Gemini gratis (bukan biaya per pemakaian)
+// Ini keputusan sadar: dipilih karena Groq gratis (bukan biaya per pemakaian)
 // dan situsnya cuma untuk lingkup kecil. Kalau nanti mau disembunyikan dari
 // publik, satu-satunya cara adalah lewat backend/proxy.
-const GEMINI_API_KEY = "AQ.Ab8RN6K25Wt3TTOz9Cu59IYnTcib6iKU7N8x-vPEsGFfDNnUpw";;
-let geminiHistory = []; // format Gemini: {role: 'user'|'model', parts: [{text}]}
+const GROQ_API_KEY = "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";
+let groqHistory = []; // format OpenAI-compatible: {role: 'user'|'assistant', content: string}
 
-async function askGemini(apiKey, message){
-  geminiHistory.push({ role: "user", parts: [{ text: message }] });
+async function askGroq(apiKey, message){
+  groqHistory.push({ role: "user", content: message });
 
   const response = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`,
+    "https://api.groq.com/openai/v1/chat/completions",
     {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "x-goog-api-key": apiKey
+        "Authorization": "Bearer " + apiKey
       },
       body: JSON.stringify({
-        system_instruction: { parts: [{ text: SYSTEM_PROMPT }] },
-        contents: geminiHistory
+        model: GROQ_MODEL,
+        messages: [{ role: "system", content: SYSTEM_PROMPT }, ...groqHistory]
       })
     }
   );
@@ -442,12 +442,12 @@ async function askGemini(apiKey, message){
     throw new Error(data?.error?.message || `Permintaan gagal (status ${response.status})`);
   }
 
-  const replyText = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+  const replyText = data?.choices?.[0]?.message?.content;
   if(!replyText){
-    throw new Error("Gemini tidak mengembalikan teks jawaban.");
+    throw new Error("Groq tidak mengembalikan teks jawaban.");
   }
 
-  geminiHistory.push({ role: "model", parts: [{ text: replyText }] });
+  groqHistory.push({ role: "assistant", content: replyText });
   return replyText;
 }
 
@@ -510,22 +510,22 @@ async function sendMessage(){
     return;
   }
 
-  // Bukan perintah kalkulator, lempar ke Gemini pakai key yang sudah ditulis di kode.
-  if(!GEMINI_API_KEY || GEMINI_API_KEY === "TARUH_API_KEY_GEMINI_KAMU_DI_SINI"){
-    addMessage('assistant', 'Belum ada Gemini API key di kode (ganti GEMINI_API_KEY di bagian atas script).');
+  // Bukan perintah kalkulator, lempar ke Groq pakai key yang sudah ditulis di kode.
+  if(!GROQ_API_KEY || GROQ_API_KEY === "TARUH_API_KEY_GROQ_KAMU_DI_SINI"){
+    addMessage('assistant', 'Belum ada Groq API key di kode (ganti GROQ_API_KEY di bagian atas script).');
     return;
   }
 
   sendBtn.disabled = true;
-  const thinkingEl = addMessage('assistant', 'Kompas sedang berpikir...');
+  const thinkingEl = addMessage('assistant', 'DiGi sedang berpikir...');
 
   try{
-    const reply = await askGemini(GEMINI_API_KEY, text);
+    const reply = await askGroq(GROQ_API_KEY, text);
     thinkingEl.remove();
     addMessage('assistant', reply);
   }catch(err){
     thinkingEl.remove();
-    addMessage('assistant', 'Gagal menghubungi Gemini: ' + err.message);
+    addMessage('assistant', 'Gagal menghubungi Groq: ' + err.message);
   }finally{
     sendBtn.disabled = false;
     inputEl.focus();
