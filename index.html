@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>DiGi — Digital Version of Gilang (Groq, gratis)</title>
+<title>Gilang's Portofolio</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/12.4.2/math.min.js"></script>
@@ -25,8 +25,78 @@
     color:var(--text);
     font-family:'Inter',sans-serif;
     display:flex;
+    flex-direction:column;
     overflow:hidden;
   }
+
+  #app{
+    display:flex;
+    flex:1;
+    min-height:0;
+    overflow:hidden;
+  }
+
+  #hero{
+    display:flex;
+    align-items:center;
+    gap:24px;
+    padding:28px 32px;
+    background:var(--panel);
+    border-bottom:1px solid var(--line);
+    flex-wrap:wrap;
+  }
+  #hero-photo{
+    width:88px;
+    height:88px;
+    border-radius:50%;
+    object-fit:cover;
+    background:var(--panel-2);
+    border:2px solid var(--gold);
+    flex-shrink:0;
+  }
+  #hero-text{
+    flex:1;
+    min-width:240px;
+  }
+  #hero-name{
+    font-family:'Fraunces',serif;
+    font-size:22px;
+    font-weight:600;
+    margin:0 0 2px 0;
+  }
+  #hero-title{
+    font-size:13px;
+    color:var(--gold);
+    font-family:'JetBrains Mono',monospace;
+    margin:0 0 8px 0;
+  }
+  #hero-desc{
+    font-size:13px;
+    color:var(--text-dim);
+    line-height:1.55;
+    max-width:640px;
+    margin:0;
+  }
+  #hero-buttons{
+    display:flex;
+    flex-wrap:wrap;
+    gap:10px;
+    flex-shrink:0;
+  }
+  .hero-btn{
+    background:var(--panel-2);
+    border:1px solid var(--line);
+    color:var(--text);
+    font-family:'Inter',sans-serif;
+    font-size:12.5px;
+    font-weight:500;
+    padding:10px 16px;
+    border-radius:8px;
+    cursor:pointer;
+    transition:border-color .15s ease, color .15s ease;
+    white-space:nowrap;
+  }
+  .hero-btn:hover{ border-color:var(--gold); color:var(--gold); }
 
   #sidebar{
     width:280px;
@@ -197,9 +267,26 @@
 </head>
 <body>
 
+<div id="hero">
+  <!-- Ganti src di bawah ini dengan foto kamu (bisa file lokal atau link gambar) -->
+  <img id="hero-photo" src="https://drive.google.com/file/d/1ZcFZMq-30YNQNnRKigL1v_xzaNVZyr9-/view?usp=sharing" alt="Foto Gilang Erhanda Putra">
+  <div id="hero-text">
+    <p id="hero-name">Gilang Erhanda Putra</p>
+    <p id="hero-title">Talent & TAP Business Development Leader</p>
+    <p id="hero-desc">Menjalankan Luxfeline Global, sebuah Multi-Channel Network (MCN) yang fokus di TikTok Shop pasar Indonesia. Mengelola kemitraan creator/affiliate, membangun dokumentasi bisnis, dan mengembangkan tooling operasional.</p>
+  </div>
+  <div id="hero-buttons">
+    <button class="hero-btn" data-target="gallery">Contoh Hasil Gambar</button>
+    <button class="hero-btn" data-target="projects">Project</button>
+    <button class="hero-btn" data-target="bd-experience">Experience as BD</button>
+    <button class="hero-btn" data-target="talent-experience">Experience as Talent &amp; TikTok Affiliate Partner Leader</button>
+  </div>
+</div>
+
+<div id="app">
 <div id="sidebar">
   <p class="brand">DiGi</p>
-  <p class="brand-sub">Groq · gratis</p>
+  <p class="brand-sub">Powered by Groq</p>
 
   <div class="section-label">Proyek yang dikenal</div>
   <div id="project-list"></div>
@@ -208,7 +295,7 @@
   <div id="calc-list"></div>
 
   <div id="sidebar-footer">
-    Jawaban proyek dan pertanyaan umum dijawab Groq API (gratis, model Llama/GPT-OSS open-source). Kalkulator tetap murni math.js, instan tanpa AI. Klik kartu untuk contoh.
+  Beberapa topik yang disediakan, Klik untuk melihat detailnya.
   </div>
 </div>
 
@@ -219,13 +306,13 @@
   </div>
 
   <div id="mode-banner">
-    <b>Mode Groq (gratis):</b> jawaban proyek dijawab AI beneran (model open-source lewat Groq, gratis), bukan cocok kata kunci. Kalkulator tetap instan tanpa AI.
+    <b>Mode Groq (gratis):</b> jawaban proyek dijawab AI beneran.
   </div>
 
   <div id="messages">
     <div id="empty-state">
       <div class="glyph">✦</div>
-      <p>Tanya pakai nama proyek (misalnya "status TIA"), atau ketik perintah hitung seperti "turunan x^2 dx" — lihat contoh di sidebar.</p>
+      <p>Tanya pakai nama proyek (misalnya "status TIA"), atau hal lainnya, bisa lihat contoh di sidebar.</p>
     </div>
   </div>
 
@@ -233,6 +320,7 @@
     <textarea id="input" rows="1" placeholder="Tanya sesuatu, sebut nama proyeknya..."></textarea>
     <button id="send-btn">Kirim</button>
   </div>
+</div>
 </div>
 
 <script>
@@ -415,7 +503,7 @@ const GROQ_MODEL = "openai/gpt-oss-20b"; // cek console.groq.com/docs/models kal
 // Ini keputusan sadar: dipilih karena Groq gratis (bukan biaya per pemakaian)
 // dan situsnya cuma untuk lingkup kecil. Kalau nanti mau disembunyikan dari
 // publik, satu-satunya cara adalah lewat backend/proxy.
-const GROQ_API_KEY = "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";
+const GROQ_API_KEY = "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";
 let groqHistory = []; // format OpenAI-compatible: {role: 'user'|'assistant', content: string}
 
 async function askGroq(apiKey, message){
@@ -459,6 +547,12 @@ const inputEl = document.getElementById('input');
 const sendBtn = document.getElementById('send-btn');
 const projectListEl = document.getElementById('project-list');
 let emptyStateEl = document.getElementById('empty-state');
+
+document.querySelectorAll('.hero-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    addMessage('assistant', `Bagian "${btn.textContent}" belum diisi. Ganti fungsi tombol ini di kode (cari class="hero-btn" di HTML) begitu kontennya sudah siap.`);
+  });
+});
 
 PROJECTS.forEach(p => {
   const card = document.createElement('div');
