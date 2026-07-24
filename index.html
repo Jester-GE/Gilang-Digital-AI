@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>DiGi - Digital Gilang</title>
+<title>DiGi- Digital Gilang</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/12.4.2/math.min.js"></script>
@@ -112,28 +112,6 @@
   #chat-header h1{ font-family:'Fraunces',serif; font-size:18px; font-weight:600; margin:0; }
   #chat-header span{ font-size:12px; color:var(--text-dim); font-family:'JetBrains Mono',monospace; }
 
-  #key-row{
-    padding:12px 32px;
-    border-bottom:1px solid var(--line);
-    display:flex;
-    align-items:center;
-    gap:14px;
-    background:var(--panel);
-  }
-  #api-key{
-    background:var(--panel-2);
-    border:1px solid var(--line);
-    border-radius:8px;
-    color:var(--text);
-    font-family:'JetBrains Mono',monospace;
-    font-size:12.5px;
-    padding:8px 10px;
-    width:300px;
-  }
-  #api-key:focus{ outline:none; border-color:var(--gold); }
-  #key-hint{ font-size:11px; color:var(--text-dim); line-height:1.4; }
-  #key-hint a{ color:var(--gold); }
-
   #mode-banner{
     padding:10px 32px;
     background:rgba(212,168,87,0.08);
@@ -220,7 +198,7 @@
 <body>
 
 <div id="sidebar">
-  <p class="brand">Kompas</p>
+  <p class="brand">Gilang</p>
   <p class="brand-sub">Gemini · gratis</p>
 
   <div class="section-label">Proyek yang dikenal</div>
@@ -236,17 +214,12 @@
 
 <div id="main">
   <div id="chat-header">
-    <h1>Tanya Kompas</h1>
+    <h1>Tanya Gilang</h1>
     <span>Gemini</span>
   </div>
 
   <div id="mode-banner">
-    <b>Mode Gemini (gratis):</b> jawaban proyek sekarang dijawab AI beneran (Gemini Flash, gratis dari Google), bukan cocok kata kunci. Kalkulator tetap instan tanpa AI.
-  </div>
-
-  <div id="key-row">
-    <input id="api-key" type="password" placeholder="Tempel Gemini API key kamu di sini">
-    <span id="key-hint">Ambil gratis di <a href="https://aistudio.google.com/apikey" target="_blank">aistudio.google.com/apikey</a>. Key cuma disimpan di browser ini, tidak dikirim ke mana pun selain Google.</span>
+    <b>Mode Gemini (gratis):</b> jawaban proyek dijawab AI beneran (Gemini Flash, gratis dari Google).
   </div>
 
   <div id="messages">
@@ -435,6 +408,14 @@ function tryCalculate(raw){
 // SYSTEM_PROMPT di atas sebagai konteks.
 // ---------------------------------------------------------------
 const GEMINI_MODEL = "gemini-3.6-flash"; // cek ai.google.dev/gemini-api/docs/latest-model kalau ini sudah diganti Google lagi
+
+// !! PERINGATAN !!
+// Key di bawah ini akan terlihat oleh SIAPA PUN yang buka "View Page Source"
+// di situs ini, karena ini kode client-side, bukan disembunyikan di server.
+// Ini keputusan sadar: dipilih karena Gemini gratis (bukan biaya per pemakaian)
+// dan situsnya cuma untuk lingkup kecil. Kalau nanti mau disembunyikan dari
+// publik, satu-satunya cara adalah lewat backend/proxy.
+const GEMINI_API_KEY = "TARUH_API_KEY_GEMINI_KAMU_DI_SINI";
 let geminiHistory = []; // format Gemini: {role: 'user'|'model', parts: [{text}]}
 
 async function askGemini(apiKey, message){
@@ -476,7 +457,6 @@ async function askGemini(apiKey, message){
 const messagesEl = document.getElementById('messages');
 const inputEl = document.getElementById('input');
 const sendBtn = document.getElementById('send-btn');
-const apiKeyEl = document.getElementById('api-key');
 const projectListEl = document.getElementById('project-list');
 let emptyStateEl = document.getElementById('empty-state');
 
@@ -530,10 +510,9 @@ async function sendMessage(){
     return;
   }
 
-  // Bukan perintah kalkulator, lempar ke Gemini.
-  const apiKey = apiKeyEl.value.trim();
-  if(!apiKey){
-    addMessage('assistant', 'Masukkan dulu Gemini API key kamu di kotak atas (gratis di aistudio.google.com/apikey) supaya aku bisa jawab pertanyaan di luar kalkulator.');
+  // Bukan perintah kalkulator, lempar ke Gemini pakai key yang sudah ditulis di kode.
+  if(!GEMINI_API_KEY || GEMINI_API_KEY === "TARUH_API_KEY_GEMINI_KAMU_DI_SINI"){
+    addMessage('assistant', 'Belum ada Gemini API key di kode (ganti GEMINI_API_KEY di bagian atas script).');
     return;
   }
 
@@ -541,7 +520,7 @@ async function sendMessage(){
   const thinkingEl = addMessage('assistant', 'Kompas sedang berpikir...');
 
   try{
-    const reply = await askGemini(apiKey, text);
+    const reply = await askGemini(GEMINI_API_KEY, text);
     thinkingEl.remove();
     addMessage('assistant', reply);
   }catch(err){
